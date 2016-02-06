@@ -4,7 +4,8 @@
 	var menu = null,
 		game = null,
 		body = null,
-		playerHeight = 100,
+		playerH = 100,
+		playerW = 10,
 		fieldW = 1000,
 		fieldH = 500,
 		fieldBorder = 5,
@@ -150,60 +151,75 @@
 
 		game.field = createElement({
 			element: 'div',
-			height: 500,
-			width: 1000,
+			height: fieldH,
+			width: fieldW,
 			className: 'game-field',
 			style: {
 				backgroundColor: '#323232',
 				margin: '10px auto',
 				width: fieldW + 'px',
-				height: fieldH + 'px'
+				height: fieldH + 'px',
+				position: 'relative'
 			},
-			onmousemove: movePlayers,
+			onmousemove: movePlayers.bind(game),
 			onclick: addBall,
 			appendTo: game.screen
 		});
 
-		game.field.rightPlayer = createElement({
-			element: 'div',
-			className: 'player right-player',
-			appendTo: game.field,
-			height: playerHeight,
-			direction: 'down',
-			style: {
-				height: playerHeight + 'px'
-			}
-		});
+		game.rightPlayer = createPlayer('right-player');
 
-		game.field.leftPlayer = createElement({
-			element: 'div',
-			className: 'player left-player',
-			appendTo: game.field,
-			height: playerHeight,
-			direction: 'down',
-			style: {
-				height: playerHeight + 'px'
-			}
-		});
-
+		game.leftPlayer = createPlayer('left-player');
+		
 		game.field.balls = [];
+	}
+
+	function createPlayer(position) {
+		var player = createElement({
+			element: 'div',
+			className: 'player',
+			appendTo: game.field,
+			height: playerH,
+			width: playerW,
+			direction: 'down',
+			style: {
+				height: playerH + 'px',
+				width: playerW + 'px'
+			}
+		});
+
+		player.classList.add(position);
+
+		return player;
 	}
 
 	function movePlayers(evt) {
 		var game = this,
 			y = evt.clientY - evt.target.offsetTop,
 			players = document.getElementsByClassName('player'),
-			offset = y - (playerHeight / 2),
+			offset = y - (playerH / 2),
 			playerOffset = players[0].offsetTop,
 			direction = undefined;
 
-		if (offset < 0) {
-			offset = 0;
-		} else if (((offset + playerHeight) > this.height)) {
-			offset = this.height - playerHeight;
+		for (var i = 0; i < game.field.balls.length; i++) {
+			var ball = game.field.balls[i];
+			if (ball == evt.target) {
+
+				return false;
+			}
 		}
 
-		if (y > (playerOffset + playerHeight / 2)) {
+		if (evt.target == game.leftPlayer || evt.target == game.rightPlayer) {
+			// console.dir(evt);
+			return false;
+		}
+
+		if (offset < 0) {
+			offset = 0;
+		} else if (((offset + playerH) > game.field.height)) {
+			offset = game.field.height - playerH;
+		}
+
+		if (y > (playerOffset + playerH / 2)) {
 			direction = 'down';
 		} else {
 			direction = 'up';
@@ -216,7 +232,7 @@
 			player.direction = direction;
 		}
 
-		console.dir(evt);
+		// console.dir(evt);
 	}
 
 	function addBall(evt) {
@@ -234,8 +250,12 @@
 			radius = 25,
 			strokeW = 3,
 			ballColor = '#f00',
-			ballCenterX = (x - circleW / 2),
-			ballCenterY = (y - circleH / 2);
+			ballCenterX = (x - radius),
+			ballCenterY = (y - radius),
+			leftBound = game.leftPlayer.offsetLeft + game.leftPlayer.width,
+			rightBound = game.rightPlayer.offsetLeft; 
+
+		console.log(ballCenterX, ballCenterY);
 
 
 		setAttributes(newBall, { width: circleW, height: circleH});
@@ -257,17 +277,17 @@
 			ballCenterY = game.field.height - radius
 		}
 
-		if (ballCenterX < 0) {
-			ballCenterX = 0;
-		} else if ((ballCenterX + radius) > game.field.width) {
-			ballCenterX = game.field.width - radius;
+		if (ballCenterX - radius < leftBound) {
+			ballCenterX = leftBound;
+		} else if ((ballCenterX + radius * 2) > rightBound) {
+			ballCenterX = rightBound - circleW;
 		}
+
+		console.log(ballCenterX + radius, rightBound);
 
 		newBall.style.left = ballCenterX + 'px';
 		newBall.style.top = ballCenterY + 'px';
 
-		// console.log(x, y);
-		
 		newBall.appendChild(circle);
 		game.field.appendChild(newBall);
 
