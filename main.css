@@ -4,7 +4,15 @@
 }
 
 body {
+	width: 100%;
+	height: 100%;
 	background-color: #E7E7E7;
+	font-family: 'Arial';
+}
+
+.game-screen,
+.menu-screen {
+	width: 100%;
 }
 
 .control-box {
@@ -14,4 +22,32 @@ body {
 button {
 	width: 150px;
 	height: 50px;
+}
+
+.game-field {
+	position: relative;
+	border: 5px solid #A7A7A7;
+}
+
+.home-btn {
+	margin-top: 10px;
+}
+
+.player {
+	position: absolute;
+	width: 10px;
+	/*height: 50px;*/
+	background-color: #fff;
+}
+
+.left-player {
+	left: 10px;
+}
+
+.right-player {
+	right: 10px;
+}
+
+h1 {
+	text-transform: uppercase;
 }
