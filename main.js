@@ -10,28 +10,22 @@
 		FIELD_HEIGHT = 500,
 		FIELD_BORDER_WIDTH = 5,
 		BALL_SPEED = 5,
+		BUTTON_STYLE = {
+			'width': '150px',
+			'height': '50px'
+		},
+		BODY_STYLE = {
+			'width': '100%',
+			'height': '100%',
+			'backgroundColor': '#e7e7e7',
+			'fontFamily': 'Arial'
+		},
 		svgNS = 'http://www.w3.org/2000/svg';
 
 	window.onload = function() {
 		body = document.body;
+		setStyle(body, BODY_STYLE);
 		setMenuScreen();
-	}
-
-	function onGameButtonClick(evt) {
-		clearMenuMemory();
-		clearHTML();
-		setGameScreen();
-	}
-
-	function onMenuButtonClick(evt) {
-		clearGameMemory();
-		clearHTML();
-		setMenuScreen();
-	}
-
-	function onExitButtonClick(evt) {
-		alert('Bye-bye!');
-		clearAllMemory();
 	}
 
 	function setMenuScreen() {
@@ -40,18 +34,27 @@
 		menu.screen = createElement({
 			element: 'div',
 			className: 'menu-screen',
+			style: {
+				'width': '100%'
+			},
 			appendTo: body
 		});
 
 		menu.controlBox = createElement({
 			element: 'div',
 			className: 'control-box',
+			style: {
+				textAlign: 'center'
+			},
 			appendTo: menu.screen
 		});
 
 		menu.title = createElement({
 			element: 'h1',
 			textContent: 'Moveball',
+			style: {
+				textTransform: 'uppercase'
+			},
 			appendTo: menu.controlBox
 		});
 
@@ -76,18 +79,27 @@
 		game.screen = createElement({
 			element: 'div',
 			className: 'game-screen',
+			style: {
+				'width': '100%'
+			},
 			appendTo: body
 		});
 
 		game.controlBox = createElement({
 			element: 'div',
 			className: 'control-box',
+			style: {
+				textAlign: 'center'
+			},
 			appendTo: game.screen
 		});
 
 		game.title = createElement({
 			element: 'h1',
 			textContent: 'Moveball',
+			style: {
+				textTransform: 'uppercase'
+			},
 			appendTo: game.controlBox
 		});
 
@@ -99,11 +111,34 @@
 			appendTo: game.controlBox
 		});
 
+		game.menuButton.style.marginTop = '10px';
+
 		initGame();
 	}
 
+	function onGameButtonClick(evt) {
+		clearMenuMemory();
+		setGameScreen();
+	}
+
+	function onMenuButtonClick(evt) {
+		clearGameMemory();
+		setMenuScreen();
+	}
+
+	function onExitButtonClick(evt) {
+		alert('Bye-bye!');
+		clearAllMemory();
+	}
+
 	function createElement(obj) {
-		var element = document.createElement(obj.element);
+		var tag = obj.element,
+			element = document.createElement(obj.element);
+
+		if (tag == 'button') {
+			obj.style = BUTTON_STYLE;
+		}
+
 		for (var p in obj) {
 			if (p == 'element') {
 				continue;
@@ -111,9 +146,7 @@
 				append(element, obj[p]);
 				continue;
 			} else if (p == 'style') {
-				for (var s in obj[p]) {
-					element.style[s] = obj[p][s];
-				}
+				setStyle(element, obj[p]);
 
 				continue;
 			}
@@ -123,17 +156,9 @@
 		return element;
 	}
 
-	function append(child, parent) {
-		parent.appendChild(child);
-	}
-
-	function clearAllMemory() {
-		game = menu = null;
-		clearHTML();
-	}
-
 	function clearMenuMemory() {
 		menu = null;
+		clearHTML();
 	}
 
 	function clearGameMemory() {
@@ -143,10 +168,18 @@
 			}
 		}
 		game = null;
+		clearHTML();
 	}
 
 	function clearHTML() {
 		document.body.innerHTML = '';
+	}
+
+	function clearAllMemory() {
+		game = menu = null;
+		BUTTON_STYLE = BODY_STYLE = null;
+		clearHTML();
+		body.style = '';
 	}
 
 	function initGame() {
@@ -162,16 +195,18 @@
 				margin: '10px auto',
 				width: FIELD_WIDTH + 'px',
 				height: FIELD_HEIGHT + 'px',
-				position: 'relative'
+				position: 'relative',
+				border: FIELD_BORDER_WIDTH + 'px solid #a7a7a7'
 			},
 			onmousemove: movePlayers.bind(game),
 			onclick: addBall,
 			appendTo: game.screen
 		});
 
-		game.rightPlayer = createPlayer('right-player');
+		game.rightPlayer = createPlayer('right');
 		game.rightPlayer.score = createElement({
 			element: 'h1',
+			className: 'score-left',
 			textContent: '0',
 			style: {
 				position: 'absolute',
@@ -183,10 +218,11 @@
 			value: 0
 		});
 
-		game.leftPlayer = createPlayer('left-player');
+		game.leftPlayer = createPlayer('left');
 		game.leftPlayer.score = createElement({
 			element: 'h1',
 			textContent: '0',
+			className: 'score-right',
 			style: {
 				position: 'absolute',
 				right: '30px',
@@ -200,7 +236,7 @@
 		game.field.balls = [];
 	}
 
-	function createPlayer(position) {
+	function createPlayer(side) {
 		var player = createElement({
 			element: 'div',
 			className: 'player',
@@ -210,11 +246,17 @@
 			direction: 'down',
 			style: {
 				height: PLAYER_HEIGHT + 'px',
-				width: PLAYER_WIDTH + 'px'
+				width: PLAYER_WIDTH + 'px',
+				position: 'absolute',
+				backgroundColor: '#fff'
 			}
 		});
 
-		player.classList.add(position);
+		if (side == 'left') {
+			player.style.left = '10px';
+		} else if (side == 'right') {
+			player.style.right = '10px'
+		}
 
 		return player;
 	}
@@ -258,13 +300,6 @@
 		}
 	}
 
-	function addBall(evt) {
-		var X = evt.layerX,
-			Y = evt.layerY;
-
-		game.field.balls.push(createBall(X, Y));
-	}
-
 	function createBall(x, y) {
 		var newBall = document.createElementNS(svgNS, 'svg'),
 			circle = document.createElementNS(svgNS, 'circle'),
@@ -295,9 +330,6 @@
 			fill: ballColor
 		});
 
-		newBall.style.position = 'absolute';
-
-
 		if (newBall.centerY - newBall.totalRadius < 0) {
 			newBall.centerY = newBall.totalRadius;
 		} else if ((newBall.centerY + newBall.totalRadius) > game.field.height) {
@@ -310,6 +342,7 @@
 			newBall.centerX = rightBound - newBall.totalRadius;
 		}
 
+		newBall.style.position = 'absolute';
 		newBall.style.left = (newBall.centerX - newBall.totalRadius) + 'px';
 		newBall.style.top = (newBall.centerY - newBall.totalRadius) + 'px';
 
@@ -363,7 +396,7 @@
 				playerRightX = (ballRight >= offsetRight),
 				playersBottom = (ballBottom <= offsetTop + PLAYER_HEIGHT && ballBottom >= offsetTop),
 				playersTop = (ballTop <= offsetTop + PLAYER_HEIGHT && ballTop >= offsetTop);
-				
+
 			if (topBound || bottomBound || leftBound || rightBound || playerLeftX || playerRightX) {
 				clearInterval(ball.move);
 
@@ -413,6 +446,13 @@
 		game.field.balls.splice(index, 1);
 	}
 
+	function addBall(evt) {
+		var X = evt.layerX,
+			Y = evt.layerY;
+
+		game.field.balls.push(createBall(X, Y));
+	}
+
 	function updateScore(player) {
 		game[player].score.value++;
 		game[player].score.textContent = game[player].score.value;
@@ -426,5 +466,15 @@
 
 	function toRadian(deg) {
 		return (deg * Math.PI) / 180;
+	}
+
+	function append(child, parent) {
+		parent.appendChild(child);
+	}
+
+	function setStyle(to, style) {
+		for (var s in style) {
+			to.style[s] = style[s];
+		}
 	}
 })();
