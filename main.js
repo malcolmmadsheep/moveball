@@ -4,25 +4,28 @@
 	var menu = null,
 		game = null,
 		body = null,
-		playerH = 100,
-		playerW = 10,
-		fieldW = 1000,
-		fieldH = 500,
-		fieldBorder = 5,
-		ballSpeed = 5,
+		PLAYER_HEIGHT = 100,
+		PLAYER_WIDTH = 10,
+		FIELD_WIDTH = 1000,
+		FIELD_HEIGHT = 500,
+		FIELD_BORDER_WIDTH = 5,
+		BALL_SPEED = 5,
 		svgNS = 'http://www.w3.org/2000/svg';
 
 	window.onload = function() {
 		body = document.body;
-
 		setMenuScreen();
 	}
 
 	function onGameButtonClick(evt) {
+		clearMenuMemory();
+		clearHTML();
 		setGameScreen();
 	}
 
 	function onMenuButtonClick(evt) {
+		clearGameMemory();
+		clearHTML();
 		setMenuScreen();
 	}
 
@@ -32,9 +35,6 @@
 	}
 
 	function setMenuScreen() {
-		clearGameMemory();
-		clearHTML();
-
 		menu = {};
 
 		menu.screen = createElement({
@@ -71,9 +71,6 @@
 	}
 
 	function setGameScreen() {
-		clearMenuMemory();
-		clearHTML();
-
 		game = {};
 
 		game.screen = createElement({
@@ -157,14 +154,14 @@
 
 		game.field = createElement({
 			element: 'div',
-			height: fieldH,
-			width: fieldW,
+			height: FIELD_HEIGHT,
+			width: FIELD_WIDTH,
 			className: 'game-field',
 			style: {
 				backgroundColor: '#323232',
 				margin: '10px auto',
-				width: fieldW + 'px',
-				height: fieldH + 'px',
+				width: FIELD_WIDTH + 'px',
+				height: FIELD_HEIGHT + 'px',
 				position: 'relative'
 			},
 			onmousemove: movePlayers.bind(game),
@@ -208,12 +205,12 @@
 			element: 'div',
 			className: 'player',
 			appendTo: game.field,
-			height: playerH,
-			width: playerW,
+			height: PLAYER_HEIGHT,
+			width: PLAYER_WIDTH,
 			direction: 'down',
 			style: {
-				height: playerH + 'px',
-				width: playerW + 'px'
+				height: PLAYER_HEIGHT + 'px',
+				width: PLAYER_WIDTH + 'px'
 			}
 		});
 
@@ -226,9 +223,17 @@
 		var game = this,
 			y = evt.clientY - evt.target.offsetTop,
 			players = document.getElementsByClassName('player'),
-			offset = y - (playerH / 2),
+			offset = y - (PLAYER_HEIGHT / 2),
 			playerOffset = players[0].offsetTop,
 			direction = undefined;
+
+		for (var i = 0; i < game.field.balls.length; i++) {
+			var ball = game.field.balls[i];
+			if (ball === evt.target) {
+				ball = null;
+				return;
+			}
+		}
 
 		if (evt.target == game.leftPlayer || evt.target == game.rightPlayer) {
 			return false;
@@ -236,17 +241,17 @@
 
 		if (offset < 0) {
 			offset = 0;
-		} else if (((offset + playerH) > game.field.height)) {
-			offset = game.field.height - playerH;
+		} else if (((offset + PLAYER_HEIGHT) > game.field.height)) {
+			offset = game.field.height - PLAYER_HEIGHT;
 		}
 
-		if (y > (playerOffset + playerH / 2)) {
+		if (y > (playerOffset + PLAYER_HEIGHT / 2)) {
 			direction = 'down';
 		} else {
 			direction = 'up';
 		}
 
-		for (var i = 0; i < players.length; i++) {
+		for (i = 0; i < players.length; i++) {
 			var player = players[i];
 			player.style.top = offset + 'px';
 			player.direction = direction;
@@ -296,7 +301,7 @@
 		if (newBall.centerY - newBall.totalRadius < 0) {
 			newBall.centerY = newBall.totalRadius;
 		} else if ((newBall.centerY + newBall.totalRadius) > game.field.height) {
-			newBall.centerY = game.field.height - newBall.totalRadius + fieldBorder;
+			newBall.centerY = game.field.height - newBall.totalRadius + FIELD_BORDER_WIDTH;
 		}
 
 		if (newBall.centerX - radius < leftBound) {
@@ -332,7 +337,7 @@
 			dX = 0,
 			dY = 0,
 			nbcY = ball.centerY,
-			speed = ballSpeed;
+			speed = BALL_SPEED;
 
 		dX = parseInt(Math.cos(toRadian(ball.angle)) * speed);
 		dY = parseInt(Math.sin(toRadian(ball.angle)) * speed);
@@ -343,44 +348,54 @@
 		ball.style.top = (ball.centerY - ball.totalRadius) + 'px';
 
 		if (game) {
-			var bTop = ball.centerY - ball.radius,
-				bBot = ball.centerY + ball.totalRadius,
-				bLeft = ball.centerX - ball.totalRadius,
-				bRight = ball.centerX + ball.totalRadius,
-				first = (bTop <= 0),
-				second = (bBot >= game.field.height + fieldBorder),
-				third = (bLeft <= 0),
-				fourth = (bRight >= game.field.width + fieldBorder),
-				sixth = true,
-				seventh = false;
-
-			if (first || second || third || fourth) {
+			var ballTop = ball.centerY - ball.radius,
+				ballBottom = ball.centerY + ball.totalRadius,
+				ballLeft = ball.centerX - ball.totalRadius,
+				ballRight = ball.centerX + ball.totalRadius,
+				topBound = (ballTop <= 0),
+				bottomBound = (ballBottom >= game.field.height + FIELD_BORDER_WIDTH),
+				leftBound = (ballLeft <= 0),
+				rightBound = (ballRight >= game.field.width + FIELD_BORDER_WIDTH),
+				offsetLeft = game.leftPlayer.offsetLeft,
+				offsetRight = game.rightPlayer.offsetLeft,
+				offsetTop = game.leftPlayer.offsetTop,
+				playerLeftX = (ballLeft <= offsetLeft + PLAYER_WIDTH),
+				playerRightX = (ballRight >= offsetRight),
+				playersBottom = (ballBottom <= offsetTop + PLAYER_HEIGHT && ballBottom >= offsetTop),
+				playersTop = (ballTop <= offsetTop + PLAYER_HEIGHT && ballTop >= offsetTop);
+				
+			if (topBound || bottomBound || leftBound || rightBound || playerLeftX || playerRightX) {
 				clearInterval(ball.move);
 
-				if (first || second) {
+				if (topBound || bottomBound) {
 					ball.angle = (360 - ball.angle);
-				} else {
+				} else if (playersBottom && playersTop) {
 					ball.angle = (180 - ball.angle);
+					if (playerLeftX) {
+						ball.centerX = offsetLeft + PLAYER_WIDTH + ball.totalRadius;
+					} else if (playerRightX) {
+						ball.centerX = offsetRight - ball.totalRadius;
+					}
 				}
 
-				if (first) {
+				if (topBound) {
 					ball.centerY = ball.totalRadius;
-				} else if (second) {
-					ball.centerY = game.field.height + fieldBorder - ball.totalRadius;
-				} else if (third || fourth) {
+				} else if (bottomBound) {
+					ball.centerY = game.field.height + FIELD_BORDER_WIDTH - ball.totalRadius;
+				} else if (leftBound || rightBound) {
 					removeBall(ball);
 					ball = null;
 					var player = 'leftPlayer';
-					if (fourth) {
+					if (rightBound) {
 						player = 'rightPlayer';
 					}
 
 					updateScore(player);
+
+					return;
 				}
 
-				if (ball) {
-					ball.move = setInterval(ballMoving.bind(ball), 25);
-				}
+				ball.move = setInterval(ballMoving.bind(ball), 25);
 			}
 		}
 	}
@@ -393,6 +408,7 @@
 				break;
 			}
 		}
+
 		game.field.removeChild(ball);
 		game.field.balls.splice(index, 1);
 	}
