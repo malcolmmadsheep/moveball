@@ -1,8 +1,7 @@
-MOVEBALL
-===
+# MOVEBALL
 
-Author: Zhuk Vladislav
+<b>Author</b>: Zhuk Vladislav
 <br />
-Email: malcolm.madsheep@gmail.com\n
+<b>Email</b>: malcolm.madsheep@gmail.com\n
 <br />
-Phone numb./Telegram: +38(066)041-94-95
+<b>Phone numb./Telegram</b>: +38(066)041-94-95
