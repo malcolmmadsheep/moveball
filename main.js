@@ -9,6 +9,7 @@
 		fieldW = 1000,
 		fieldH = 500,
 		fieldBorder = 5,
+		ballSpeed = 5,
 		svgNS = 'http://www.w3.org/2000/svg';
 
 	window.onload = function() {
@@ -139,6 +140,11 @@
 	}
 
 	function clearGameMemory() {
+		if (game) {
+			for (var i = 0; i < game.field.balls.length; i++) {
+				clearInterval(game.field.balls[i].move);
+			}
+		}
 		game = null;
 	}
 
@@ -167,9 +173,33 @@
 		});
 
 		game.rightPlayer = createPlayer('right-player');
+		game.rightPlayer.score = createElement({
+			element: 'h1',
+			textContent: '0',
+			style: {
+				position: 'absolute',
+				left: '30px',
+				top: '45%',
+				fontSize: '6em'
+			},
+			appendTo: body,
+			value: 0
+		});
 
 		game.leftPlayer = createPlayer('left-player');
-		
+		game.leftPlayer.score = createElement({
+			element: 'h1',
+			textContent: '0',
+			style: {
+				position: 'absolute',
+				right: '30px',
+				top: '45%',
+				fontSize: '6em'
+			},
+			appendTo: body,
+			value: 0
+		});
+
 		game.field.balls = [];
 	}
 
@@ -200,16 +230,7 @@
 			playerOffset = players[0].offsetTop,
 			direction = undefined;
 
-		for (var i = 0; i < game.field.balls.length; i++) {
-			var ball = game.field.balls[i];
-			if (ball == evt.target) {
-
-				return false;
-			}
-		}
-
 		if (evt.target == game.leftPlayer || evt.target == game.rightPlayer) {
-			// console.dir(evt);
 			return false;
 		}
 
@@ -227,12 +248,9 @@
 
 		for (var i = 0; i < players.length; i++) {
 			var player = players[i];
-
 			player.style.top = offset + 'px';
 			player.direction = direction;
 		}
-
-		// console.dir(evt);
 	}
 
 	function addBall(evt) {
@@ -245,20 +263,23 @@
 	function createBall(x, y) {
 		var newBall = document.createElementNS(svgNS, 'svg'),
 			circle = document.createElementNS(svgNS, 'circle'),
-			circleW = 50,
-			circleH = 50,
-			radius = 25,
-			strokeW = 3,
+			circleW = 30,
+			circleH = circleW,
+			radius = parseInt(circleW / 2),
+			strokeW = 2,
 			ballColor = '#f00',
-			ballCenterX = (x - radius),
-			ballCenterY = (y - radius),
 			leftBound = game.leftPlayer.offsetLeft + game.leftPlayer.width,
-			rightBound = game.rightPlayer.offsetLeft; 
+			rightBound = game.rightPlayer.offsetLeft + game.rightPlayer.width / 2;
 
-		console.log(ballCenterX, ballCenterY);
+		newBall.centerX = x;
+		newBall.centerY = y;
+		newBall.radius = radius;
+		newBall.totalRadius = radius + strokeW;
 
-
-		setAttributes(newBall, { width: circleW, height: circleH});
+		setAttributes(newBall, {
+			width: circleW,
+			height: circleH
+		});
 
 		setAttributes(circle, {
 			cx: (circleW / 2),
@@ -271,32 +292,123 @@
 
 		newBall.style.position = 'absolute';
 
-		if (ballCenterY < 0) {
-			ballCenterY = 0;
-		} else if ((ballCenterY + radius) > game.field.height) {
-			ballCenterY = game.field.height - radius
+
+		if (newBall.centerY - newBall.totalRadius < 0) {
+			newBall.centerY = newBall.totalRadius;
+		} else if ((newBall.centerY + newBall.totalRadius) > game.field.height) {
+			newBall.centerY = game.field.height - newBall.totalRadius + fieldBorder;
 		}
 
-		if (ballCenterX - radius < leftBound) {
-			ballCenterX = leftBound;
-		} else if ((ballCenterX + radius * 2) > rightBound) {
-			ballCenterX = rightBound - circleW;
+		if (newBall.centerX - radius < leftBound) {
+			newBall.centerX = leftBound + newBall.totalRadius;
+		} else if ((newBall.centerX + newBall.totalRadius) > rightBound) {
+			newBall.centerX = rightBound - newBall.totalRadius;
 		}
 
-		console.log(ballCenterX + radius, rightBound);
+		newBall.style.left = (newBall.centerX - newBall.totalRadius) + 'px';
+		newBall.style.top = (newBall.centerY - newBall.totalRadius) + 'px';
 
-		newBall.style.left = ballCenterX + 'px';
-		newBall.style.top = ballCenterY + 'px';
+		newBall.originalX = newBall.centerX;
+		newBall.originalY = newBall.centerY;
 
-		newBall.appendChild(circle);
-		game.field.appendChild(newBall);
+		var rA = Math.round(Math.random() * 360);
+		if ((rA >= 80 && rA <= 105) || (rA >= 260 && rA <= 285)) {
+			rA += 30;
+		}
+
+		newBall.angle = rA;
+
+		newBall.move = setInterval(ballMoving.bind(newBall), 25);
+
+		append(circle, newBall);
+		append(newBall, game.field);
 
 		return newBall;
+	}
+
+	function ballMoving() {
+		var ball = this,
+			nbcX = ball.centerX,
+			dX = 0,
+			dY = 0,
+			nbcY = ball.centerY,
+			speed = ballSpeed;
+
+		dX = parseInt(Math.cos(toRadian(ball.angle)) * speed);
+		dY = parseInt(Math.sin(toRadian(ball.angle)) * speed);
+
+		ball.centerX += dX;
+		ball.centerY += dY;
+		ball.style.left = (ball.centerX - ball.totalRadius) + 'px';
+		ball.style.top = (ball.centerY - ball.totalRadius) + 'px';
+
+		if (game) {
+			var bTop = ball.centerY - ball.radius,
+				bBot = ball.centerY + ball.totalRadius,
+				bLeft = ball.centerX - ball.totalRadius,
+				bRight = ball.centerX + ball.totalRadius,
+				first = (bTop <= 0),
+				second = (bBot >= game.field.height + fieldBorder),
+				third = (bLeft <= 0),
+				fourth = (bRight >= game.field.width + fieldBorder),
+				sixth = true,
+				seventh = false;
+
+			if (first || second || third || fourth) {
+				clearInterval(ball.move);
+
+				if (first || second) {
+					ball.angle = (360 - ball.angle);
+				} else {
+					ball.angle = (180 - ball.angle);
+				}
+
+				if (first) {
+					ball.centerY = ball.totalRadius;
+				} else if (second) {
+					ball.centerY = game.field.height + fieldBorder - ball.totalRadius;
+				} else if (third || fourth) {
+					removeBall(ball);
+					ball = null;
+					var player = 'leftPlayer';
+					if (fourth) {
+						player = 'rightPlayer';
+					}
+
+					updateScore(player);
+				}
+
+				if (ball) {
+					ball.move = setInterval(ballMoving.bind(ball), 25);
+				}
+			}
+		}
+	}
+
+	function removeBall(ball) {
+		var index = -1;
+		for (var i = 0; i < game.field.balls.length; i++) {
+			if (ball === game.field.balls[i]) {
+				index = i;
+				break;
+			}
+		}
+		game.field.removeChild(ball);
+		game.field.balls.splice(index, 1);
+	}
+
+	function updateScore(player) {
+		game[player].score.value++;
+		game[player].score.textContent = game[player].score.value;
 	}
 
 	function setAttributes(to, attributes) {
 		for (var p in attributes) {
 			to.setAttribute(p, attributes[p]);
 		}
+	}
+
+	function toRadian(deg) {
+		return (deg * Math.PI) / 180;
 	}
 })();
