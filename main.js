@@ -10,6 +10,7 @@
 		FIELD_HEIGHT = 500,
 		FIELD_BORDER_WIDTH = 5,
 		BALL_SPEED = 5,
+		BALL_DIAMETER = 50,
 		BUTTON_STYLE = {
 			'width': '150px',
 			'height': '50px'
@@ -303,7 +304,7 @@
 	function createBall(x, y) {
 		var newBall = document.createElementNS(svgNS, 'svg'),
 			circle = document.createElementNS(svgNS, 'circle'),
-			circleW = 30,
+			circleW = BALL_DIAMETER,
 			circleH = circleW,
 			radius = parseInt(circleW / 2),
 			strokeW = 2,
@@ -402,7 +403,7 @@
 
 				if (topBound || bottomBound) {
 					ball.angle = (360 - ball.angle);
-				} else if (playersBottom && playersTop) {
+				} else if (playersBottom || playersTop) {
 					ball.angle = (180 - ball.angle);
 					if (playerLeftX) {
 						ball.centerX = offsetLeft + PLAYER_WIDTH + ball.totalRadius;
