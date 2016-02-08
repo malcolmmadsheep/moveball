@@ -1,7 +1,9 @@
 # MOVEBALL
 
-<b>Author</b>: Zhuk Vladislav
+Tennis game written on pure JavaScript with DOM preloading.
+
+**Author**: Zhuk Vladislav
 <br />
-<b>Email</b>: malcolm.madsheep@gmail.com
+**Email**: malcolm.madsheep@gmail.com
 <br />
-<b>Phone numb./Telegram</b>: +38(066)041-94-95
+**Phone numb./Telegram**: +38(066)041-94-95
