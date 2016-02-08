@@ -1,6 +1,6 @@
 # MOVEBALL
 
-Tennis ball written on pure JavaScript with DOM preloading.
+Tennis game written on pure JavaScript with DOM preloading.
 
 **Author**: Zhuk Vladislav
 <br />
