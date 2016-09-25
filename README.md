@@ -4,8 +4,12 @@ Tennis game written on pure JavaScript with DOM preloading.
 
 [PLAY DEMO!](http://malcolmmadsheep.com/moveball/)
 
-**Author**: Zhuk Vladislav
+**Author**: Vladislav Zhuk;
 <br />
-**Email**: malcolm.madsheep@gmail.com
+**Telegram**: @vladislavzhuk;
 <br />
-**Phone numb./Telegram**: +38(066)041-94-95
+**Email**: malcolm.madsheep@gmail.com;
+<br />
+**Skype**: malcolm.madsheep;
+<br />
+**Website**: malcolmmadsheep.com;
